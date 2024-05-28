@@ -1,2 +1,3 @@
-# Data-science-term-project
-Preprocessing and train data 
+# Data science term project
+
+Libraries to follow this project
