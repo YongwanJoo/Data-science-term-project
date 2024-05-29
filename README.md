@@ -33,3 +33,7 @@ Libraries to follow this project
 ###### https://dlearner.tistory.com/20
 ###### https://gmnam.tistory.com/302
 ###### https://wikibook.co.kr/ml-definitive-guide/
+###### https://medium.com/codex/dimensionality-reduction-techniques-for-categorical-continuous-data-75d2bca53100
+
+# ***Dataset***
+###### https://www.kaggle.com/datasets/devashish0507/big-mart-sales-prediction
