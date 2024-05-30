@@ -7,7 +7,7 @@ from sklearn.preprocessing import OneHotEncoder, RobustScaler, MinMaxScaler, Sta
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, make_scorer, mean_squared_error
-from sklearn.model_selection import KFold, cross_val_score
+from sklearn.model_selection import KFold, cross_val_score, cross_validate
 
 # Load data file
 df = pd.read_csv('TERM.csv')
@@ -15,7 +15,7 @@ print(df.head())
 print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
 
 #Check data information
-print(f"Print data informaint:\n{df.info()}")
+print(f"Print data information:\n{df.info()}")
 print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
 
 #Fill missing datas
@@ -27,7 +27,8 @@ print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
 
 #Drop unnecessary datas
 print("Drop unnecessary features")
-drop_groups = ['Item_Identifier', 'Item_Fat_Content','Outlet_Identifier', 'Outlet_Size']
+drop_groups = ['Item_Identifier', 'Item_Fat_Content','Outlet_Identifier', 
+               'Outlet_Size']
 df = df.drop(columns=drop_groups)
 print(df.head())
 print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
@@ -64,11 +65,10 @@ label.unique()
 
 ohe = OneHotEncoder(sparse_output=False)
 outlet_type_encoded = ohe.fit_transform(label.values.reshape(-1,1))
-outlet_type_encoded_df = pd.DataFrame(outlet_type_encoded, columns=['Outlet_Type_Grocery Store',
-        'Outlet_Type_Supermarket Type1','Outlet_Type_Supermarket Type2',
-        'Outlet_Type_Supermarket Type3'])
+outlet_type_encoded_df = pd.DataFrame(outlet_type_encoded, columns=ohe.get_feature_names_out(['Outlet_Type']))
 df = pd.concat([df, outlet_type_encoded_df], axis=1)
 df = df.drop(columns=['Outlet_Type'])
+
 print(f"Result of OneHotEncoding{df.head()}")
 print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
 
@@ -163,22 +163,28 @@ important_features = ['Item_MRP', 'Outlet_Type_Grocery Store',
 print(f"Top {len(important_features)} of important features:\n{important_features}")
 print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
 
-X = X[important_features]
-
 #Evaluate
 # Linear Regression with K-Fold Cross-Validation
 print("Linear Regression with K-Fold Cross-Validation:")
-kf = KFold(n_splits=5, shuffle=True, random_state=1)
+kf = KFold(n_splits=10, shuffle=True, random_state=1)
 model = LinearRegression()
+
+#Devide Train and Test
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.5, shuffle=True)
+
+#Train data
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
 
 # Define scoring metrics
 scoring = {'mse': make_scorer(mean_squared_error, greater_is_better=False),
            'r2': make_scorer(r2_score)}
 
 # Perform cross-validation
-scores = cross_validate(model, X, y, cv=kf, scoring=scoring, return_train_score=True)
+scores = cross_validate(model, X_train, y_train, cv=kf, scoring=scoring, return_train_score=True)
 
-mse_scores = -scores['test_mse']  # Convert scores to positive mean squared error
+# Convert scores to positive mean squared error
+mse_scores = -scores['test_mse']  
 r2_scores = scores['test_r2']
 
 print(f"Mean Squared Errors for each fold: {mse_scores}")
